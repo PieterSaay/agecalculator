@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Age Calculator App</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2c3e50">
+
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="AgeCalc">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 80px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    #result, #countdown {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #result {
+      color: darkgreen;
+    }
+    #countdown {
+      color: darkblue;
+    }
+  </style>
+</head>
+<body>
+  <h1>Exact Age Calculator</h1>
+  <p>Enter your full date of birth:</p>
+  
+  <input type="date" id="dob">
+  <button onclick="startCalculation()">Calculate Age</button>
+  
+  <div id="result"></div>
+  <div id="countdown"></div>
+
+  <script>
+    let countdownInterval;
+
+    function startCalculation() {
+      clearInterval(countdownInterval);
+      calculateAge();
+      countdownInterval = setInterval(calculateAge, 1000);
+    }
+
+    function calculateAge() {
+      const dobInput = document.getElementById("dob").value;
+      if (!dobInput) {
+        document.getElementById("result").innerText = "Please select a valid date.";
+        document.getElementById("countdown").innerText = "";
+        return;
+      }
+
+      const dob = new Date(dobInput);
+      const now = new Date();
+
+      let years = now.getFullYear() - dob.getFullYear();
+      let months = now.getMonth() - dob.getMonth();
+      let days = now.getDate() - dob.getDate();
+
+      if (days < 0) {
+        months--;
+        const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += prevMonth.getDate();
+      }
+
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      document.getElementById("result").innerText = 
+        `You are ${years} years, ${months} months, and ${days} days old.`;
+
+      let nextBirthday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+      if (now > nextBirthday) {
+        nextBirthday.setFullYear(now.getFullYear() + 1);
+      }
+
+      const diffTime = nextBirthday - now;
+
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor((diffTime / (1000 * 60 * 60)) % 24);
+      const diffMinutes = Math.floor((diffTime / (1000 * 60)) % 60);
+      const diffSeconds = Math.floor((diffTime / 1000) % 60);
+
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const birthdayDay = daysOfWeek[nextBirthday.getDay()];
+
+      document.getElementById("countdown").innerText =
+        `🎂 Your next birthday is in ${diffDays} days, ${diffHours}h ${diffMinutes}m ${diffSeconds}s 
+         on ${birthdayDay}, ${nextBirthday.toDateString()}.`;
+    }
+
+    // Register service worker for PWA
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+  </script>
+</body>
+</html>
